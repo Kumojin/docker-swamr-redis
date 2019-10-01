@@ -6,21 +6,30 @@ services:
     volumes:
       - redis-data:/data
     deploy:
-      mode: global
+      mode: replicated
+      replicas: 1
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
       placement:
         constraints:
           - node.role == worker
           - node.labels.redistype == master
-          #- engine.labels.operatingsystem == ubuntu 19.04
     networks:
       host:
   redis-slave:
     image: redis
-    command: redis-server --slaveof <MASTER_IP> 6379
+    command: redis-server --slaveof redis-master 6379
     volumes:
       - redis-data:/data
     deploy:
-      mode: global
+      mode: replicated
+      replicas: 1
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
       placement:
         constraints:
           - node.role == worker
@@ -30,13 +39,14 @@ services:
   redis-sentinel:
     image: kumojin/redis:sentinel
     deploy:
-      mode: global
+      mode: replicated
+      replicas: 3
       placement:
         constraints:
           - node.role == worker
           - node.labels.app == redis
     environment:
-      - "SENTINEL_MASTER_IP=<MASTER_IP>"
+      - "SENTINEL_MASTER_IP=redis-master"
     networks:
       host:
 
