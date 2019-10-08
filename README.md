@@ -7,20 +7,22 @@ https://redis.io/topics/sentinel#sentinel-docker-nat-and-possible-issues
 #### Master node
 
 ```shell
-docker node update --label-add app redis
-docker node update --label-add redistype master
+docker node update --label-add redis-master=true docker-desktop
 ```
 
 #### Replica nodes
 
 ```shell
-docker node update --label-add app redis
-docker node update --label-add redistype replica
+docker node update --label-add redis-replica=true docker-desktop
+```
+
+#### Sentinel nodes
+
+```shell
+docker node update --label-add redis-sentinel=true docker-desktop
 ```
 
 ### Deploy stack
-
-Replace `<MASTER_IP>` with the IP of Redis master host in the file `redis.yml`
 
 ```shell
 docker stack deploy -c redis.yml redis

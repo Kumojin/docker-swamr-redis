@@ -2,9 +2,9 @@ version: '3.7'
 
 services:
   redis-master:
-    image: redis
-    volumes:
-      - redis-data:/data
+    image: kumojin/redis:5
+    # volumes:
+    #   - redis-data:/data
     deploy:
       mode: replicated
       replicas: 1
@@ -14,15 +14,16 @@ services:
           memory: 512M
       placement:
         constraints:
-          - node.role == worker
-          - node.labels.redistype == master
+          # - node.role == worker
+          - node.labels.redis-master == true
     networks:
-      host:
+      - redis
+
   redis-slave:
-    image: redis
-    command: redis-server --slaveof redis-master 6379
-    volumes:
-      - redis-data:/data
+    image: kumojin/redis:5
+    command: --slaveof redis-master 6379
+    # volumes:
+    #   - redis-data:/data
     deploy:
       mode: replicated
       replicas: 1
@@ -32,27 +33,28 @@ services:
           memory: 512M
       placement:
         constraints:
-          - node.role == worker
-          - node.labels.redistype == replica
+          # - node.role == worker
+          - node.labels.redis-replica == true
     networks:
-      host:
+      - redis
+
   redis-sentinel:
-    image: kumojin/redis:sentinel
+    image: kumojin/redis-sentinel:5
     deploy:
       mode: replicated
       replicas: 3
       placement:
         constraints:
-          - node.role == worker
-          - node.labels.app == redis
+          # - node.role == worker
+          - node.labels.redis-sentinel == true
     environment:
       - "SENTINEL_MASTER_IP=redis-master"
     networks:
-      host:
+      - redis
 
 networks:
-  host:
-    external: true
+  redis:
+    driver: overlay
 
 volumes:
   redis-data:
